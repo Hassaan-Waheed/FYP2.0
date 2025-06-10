@@ -1,0 +1,63 @@
+# requirements-test.txt
+# Comprehensive test dependencies for the Crypto Investment Analysis System
+# Covers unit, integration, load, system, black-box, and white-box testing
+
+# Core testing frameworks
+pytest>=7.0
+pytest-cov>=4.0
+pytest-xdist>=3.0  # Parallel test execution
+pytest-mock>=3.0
+pytest-asyncio>=0.21
+
+# API and web testing
+requests>=2.31
+httpx>=0.27
+fastapi>=0.110
+starlette>=0.36
+
+# Data science and ML
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+scipy>=1.10
+matplotlib>=3.7
+seaborn>=0.13
+
+# Deep learning
+torch>=2.0
+transformers>=4.38
+
+# Database and mocking
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+mongomock>=4.1
+
+# Monitoring and system
+psutil>=5.9
+
+# Load and performance testing
+locust>=2.20
+pytest-benchmark>=4.0
+
+# Linting and static analysis (white-box)
+flake8>=7.0
+mypy>=1.8
+bandit>=1.7
+
+# Code coverage and reporting
+coverage>=7.4
+pytest-html>=4.0
+
+# Utilities
+python-dotenv>=1.0
+mock>=5.1
+
+# For test isolation and environment
+freezegun>=1.4
+factory-boy>=3.3
+
+# Optional: for advanced mocking and patching
+responses>=0.25
+
+# Optional: for property-based testing
+hypothesis>=6.98 
