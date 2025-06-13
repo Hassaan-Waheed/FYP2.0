@@ -32,14 +32,14 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React frontend
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(predict.router, prefix="/predict", tags=["predictions"])
+app.include_router(predict.router, prefix="/api/v1", tags=["predictions"])
 
 @app.get("/health")
 async def health_check():

@@ -15,7 +15,7 @@ from datetime import datetime
 import logging
 from api.models.schemas import RiskLevel
 from models.technical.infer_cnn_lstm import load_model as load_technical_model
-from models.sentiment.infer_finbert import load_sentiment_model
+from models.sentiment.infer_finbert import load_model as load_sentiment_model
 from models.ensemble.ensemble_model import EnsembleModel
 
 # Configure logging
@@ -27,29 +27,38 @@ class PredictionService:
 
     def __init__(self):
         """Initialize prediction service with required models."""
-        self.technical_model = load_technical_model()
-        self.sentiment_model, self.tokenizer = load_sentiment_model()
-        self.ensemble_model = EnsembleModel()
-        logger.info("Prediction service initialized")
+        try:
+            self.technical_model = load_technical_model()
+            self.sentiment_model = load_sentiment_model()
+            self.ensemble_model = EnsembleModel()
+            logger.info("Prediction service initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize prediction service: {str(e)}")
+            raise
 
-    async def get_prediction(
+    async def predict(
         self,
-        ticker: str,
-        features: Dict[str, Any]
+        features: Dict[str, Any],
+        analysis_type: str = "comprehensive",
+        feature_weights: Optional[Dict[str, float]] = None,
+        risk_tolerance: Optional[RiskLevel] = None
     ) -> Dict[str, Any]:
         """
-        @brief Get prediction for a cryptocurrency
-        @param ticker: Cryptocurrency ticker
+        Make prediction based on features and parameters.
+        
         @param features: Dictionary of features
+        @param analysis_type: Type of analysis to perform
+        @param feature_weights: Optional weights for different features
+        @param risk_tolerance: Optional risk tolerance level
         @return: Prediction results
         """
         try:
             # Get predictions from individual models
             technical_pred = await self._get_technical_prediction(
-                features["technical"]
+                features.get("technical", {})
             )
             sentiment_pred = await self._get_sentiment_prediction(
-                features["sentiment"]
+                features.get("sentiment", {})
             )
             
             # Get ensemble prediction
@@ -62,7 +71,6 @@ class PredictionService:
             risk_level = self._assess_risk(ensemble_pred)
             
             return {
-                "ticker": ticker,
                 "timestamp": datetime.now(),
                 "score": ensemble_pred,
                 "risk": risk_level,
@@ -81,9 +89,24 @@ class PredictionService:
             logger.error(f"Prediction failed: {str(e)}")
             raise
 
+    async def get_latest_prediction(self, ticker: str) -> Dict[str, Any]:
+        """
+        Get latest prediction for a ticker.
+        
+        @param ticker: Cryptocurrency ticker
+        @return: Latest prediction
+        """
+        try:
+            # Placeholder for database lookup
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get latest prediction: {str(e)}")
+            raise
+
     async def get_confidence(self, ticker: str) -> Dict[str, float]:
         """
-        @brief Get prediction confidence scores
+        Get prediction confidence scores.
+        
         @param ticker: Cryptocurrency ticker
         @return: Dictionary of confidence scores
         """
@@ -94,7 +117,6 @@ class PredictionService:
                 "sentiment": 0.80,
                 "ensemble": 0.90
             }
-
         except Exception as e:
             logger.error(f"Confidence calculation failed: {str(e)}")
             raise
@@ -104,14 +126,14 @@ class PredictionService:
         features: Dict[str, Any]
     ) -> float:
         """
-        @brief Get technical analysis prediction
+        Get technical analysis prediction.
+        
         @param features: Technical features
         @return: Technical prediction score
         """
         try:
             # Implement technical prediction logic
             return 0.75
-
         except Exception as e:
             logger.error(f"Technical prediction failed: {str(e)}")
             raise
@@ -121,14 +143,14 @@ class PredictionService:
         features: Dict[str, Any]
     ) -> float:
         """
-        @brief Get sentiment analysis prediction
+        Get sentiment analysis prediction.
+        
         @param features: Sentiment features
         @return: Sentiment prediction score
         """
         try:
             # Implement sentiment prediction logic
             return 0.70
-
         except Exception as e:
             logger.error(f"Sentiment prediction failed: {str(e)}")
             raise
@@ -139,7 +161,8 @@ class PredictionService:
         sentiment_pred: float
     ) -> float:
         """
-        @brief Get ensemble prediction
+        Get ensemble prediction.
+        
         @param technical_pred: Technical prediction score
         @param sentiment_pred: Sentiment prediction score
         @return: Ensemble prediction score
@@ -147,14 +170,14 @@ class PredictionService:
         try:
             # Implement ensemble prediction logic
             return 0.80
-
         except Exception as e:
             logger.error(f"Ensemble prediction failed: {str(e)}")
             raise
 
     def _assess_risk(self, score: float) -> RiskLevel:
         """
-        @brief Assess risk level based on prediction score
+        Assess risk level based on prediction score.
+        
         @param score: Prediction score
         @return: Risk level
         """
@@ -173,7 +196,8 @@ class PredictionService:
         sentiment_pred: float
     ) -> float:
         """
-        @brief Calculate overall prediction confidence
+        Calculate overall prediction confidence.
+        
         @param technical_pred: Technical prediction score
         @param sentiment_pred: Sentiment prediction score
         @return: Confidence score
@@ -181,7 +205,6 @@ class PredictionService:
         try:
             # Implement confidence calculation logic
             return 0.85
-
         except Exception as e:
             logger.error(f"Confidence calculation failed: {str(e)}")
             raise 

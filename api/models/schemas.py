@@ -12,9 +12,9 @@ and feature data structures.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
-from datetime import datetime
+from typing import Dict, List, Optional, Union, Any
+from pydantic import BaseModel, Field, validator
+from datetime import datetime, timedelta
 
 
 class RiskLevel(str, Enum):
@@ -103,4 +103,106 @@ class ErrorResponse(BaseModel):
     timestamp: datetime = Field(
         default_factory=datetime.now,
         description="Error timestamp"
-    ) 
+    )
+
+
+class TimeFrame(str, Enum):
+    """Time frame for prediction analysis."""
+    HOUR = "1h"
+    DAY = "1d"
+    WEEK = "1w"
+    MONTH = "1m"
+    QUARTER = "3m"
+    YEAR = "1y"
+
+
+class AnalysisType(str, Enum):
+    """Type of analysis to perform."""
+    TECHNICAL = "technical"
+    FUNDAMENTAL = "fundamental"
+    SENTIMENT = "sentiment"
+    ONCHAIN = "onchain"
+    COMPREHENSIVE = "comprehensive"
+
+
+class PredictionRequest(BaseModel):
+    """Prediction request model with comprehensive fields."""
+    # Required fields
+    ticker: str = Field(..., description="Cryptocurrency ticker symbol (e.g., BTC, ETH)")
+    
+    # Optional fields with defaults
+    timeframe: TimeFrame = Field(
+        default=TimeFrame.DAY,
+        description="Time frame for the prediction"
+    )
+    analysis_type: AnalysisType = Field(
+        default=AnalysisType.COMPREHENSIVE,
+        description="Type of analysis to perform"
+    )
+    
+    # Advanced configuration
+    include_technical: bool = Field(
+        default=True,
+        description="Include technical analysis"
+    )
+    include_fundamental: bool = Field(
+        default=True,
+        description="Include fundamental analysis"
+    )
+    include_sentiment: bool = Field(
+        default=True,
+        description="Include sentiment analysis"
+    )
+    include_onchain: bool = Field(
+        default=True,
+        description="Include on-chain analysis"
+    )
+    
+    # Historical data parameters
+    historical_days: int = Field(
+        default=30,
+        ge=1,
+        le=365,
+        description="Number of historical days to consider"
+    )
+    
+    # Feature weights (optional)
+    feature_weights: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Custom weights for different features"
+    )
+    
+    # Risk parameters
+    risk_tolerance: Optional[RiskLevel] = Field(
+        default=None,
+        description="User's risk tolerance level"
+    )
+    
+    # Market context
+    market_context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional market context data"
+    )
+    
+    # Custom indicators
+    custom_indicators: Optional[List[str]] = Field(
+        default=None,
+        description="List of custom technical indicators to include"
+    )
+    
+    # Validation
+    @validator('ticker')
+    def validate_ticker(cls, v):
+        """Validate ticker symbol format."""
+        if not v.isalnum():
+            raise ValueError('Ticker must be alphanumeric')
+        return v.upper()
+    
+    @validator('feature_weights')
+    def validate_feature_weights(cls, v):
+        """Validate feature weights sum to 1 if provided."""
+        if v is not None:
+            total = sum(v.values())
+            if not 0.99 <= total <= 1.01:  # Allow for small floating point errors
+                raise ValueError('Feature weights must sum to 1')
+        return v 
