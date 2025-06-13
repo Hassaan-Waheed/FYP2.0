@@ -5,13 +5,18 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const RiskGauge = ({ score, risk }) => {
+  let mainColor;
+  if (risk === 'high') {
+    mainColor = '#ff4444';
+  } else if (risk === 'medium') {
+    mainColor = '#ffbb33';
+  } else {
+    mainColor = '#00C851';
+  }
   const data = {
     datasets: [{
       data: [score, 1 - score],
-      backgroundColor: [
-        risk === 'high' ? '#ff4444' : risk === 'medium' ? '#ffbb33' : '#00C851',
-        '#e9ecef'
-      ],
+      backgroundColor: [mainColor, '#e9ecef'],
       borderWidth: 0
     }]
   };
